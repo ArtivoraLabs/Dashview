@@ -1602,20 +1602,109 @@
     downloadText(state.workbookName + '.csv', Studio.csvFromTable(cols, getFilteredRows()));
     closeAllDropdowns();
   });
-  on(byId('exportXlsxBtn'), 'click', function () {
+  /* ---- Professional report export (Excel / PDF), via js/report-engine.js ---- */
+  var reportFormat = 'xlsx';
+  function describeFilters() {
+    if (!state.dataset) return [];
+    var out = [];
+    Object.keys(state.filters).forEach(function (fieldName) {
+      var filt = state.filters[fieldName];
+      if (filt.fromHierarchy) return; // surfaced separately via the drill breadcrumb below
+      if (filt.type === 'set') {
+        var shown = filt.include.slice(0, 6);
+        out.push(fieldName + ': ' + shown.join(', ') + (filt.include.length > shown.length ? ' +' + (filt.include.length - shown.length) + ' more' : ''));
+      } else if (filt.type === 'range') {
+        var minTxt = filt.min != null ? Studio.formatByType(filt.min, Studio.Types.DATE) : '…';
+        var maxTxt = filt.max != null ? Studio.formatByType(filt.max, Studio.Types.DATE) : '…';
+        out.push(fieldName + ': ' + minTxt + ' – ' + maxTxt);
+      } else if (filt.type === 'eq') {
+        out.push(fieldName + ' = ' + filt.value);
+      }
+    });
+    if (state.drillCrumbs && state.drillCrumbs.length) out.push('Drilled into ' + state.drillCrumbs.map(function (c) { return c.value; }).join(' \u2192 '));
+    return out;
+  }
+  function reportKpis() {
+    if (!state.dataset) return [];
+    var rows = getFilteredRows();
+    return state.widgets.filter(function (w) { return w.kind === 'kpi' || w.kind === 'measure'; }).map(function (w) {
+      return { label: w.spec.title, value: w.kind === 'measure' ? computeMeasureValue(w, rows) : computeKpiValue(w.spec, rows) };
+    });
+  }
+  function reportCharts() {
+    return state.widgets.filter(function (w) { return w.kind === 'chart'; }).map(function (w) {
+      var inst = chartInstances[w.id];
+      if (!inst) return null;
+      var img; try { img = inst.toBase64Image('image/png', 1); } catch (e) { img = null; }
+      if (!img) return null;
+      return { title: w.spec.title || 'Chart', subtitle: widgetSubtitle(w), image: img, width: inst.width, height: inst.height };
+    }).filter(Boolean);
+  }
+  function reportPivot() {
+    if (!state.lastPivot) return null;
+    return flattenPivotForExport(state.lastPivot);
+  }
+  function buildReportPayload(opts) {
+    var ds = state.dataset;
+    var filteredRows = getFilteredRows();
+    return {
+      title: (byId('reportTitleInput').value || '').trim() || state.workbookName,
+      workbookName: state.workbookName,
+      sourceFileName: state.sourceFileName,
+      generatedAt: new Date(),
+      totalRows: ds.typedRows.length,
+      filteredRows: filteredRows.length,
+      filtersSummary: describeFilters(),
+      fields: ds.fields.map(function (f) { return { name: f.name, type: f.type }; }),
+      rows: filteredRows,
+      includeData: opts.includeData,
+      includeKpis: opts.includeKpis,
+      includeCharts: opts.includeCharts,
+      includePivot: opts.includePivot,
+      kpis: opts.includeKpis ? reportKpis() : [],
+      charts: opts.includeCharts ? reportCharts() : [],
+      pivot: opts.includePivot ? reportPivot() : null,
+      formatCell: function (v, type) { return Studio.formatByType(v, type); },
+    };
+  }
+  function openReportModal(format) {
+    if (!state.dataset) { showToast('Import data first.', 'error'); return; }
+    reportFormat = format;
+    byId('reportOptionsEyebrow').textContent = format === 'pdf' ? 'Board-ready PDF export' : 'Board-ready Excel export';
+    byId('reportOptionsTitle').textContent = format === 'pdf' ? 'PDF report options' : 'Excel report options';
+    byId('reportTitleInput').value = state.workbookName;
+    var hasCharts = state.widgets.some(function (w) { return w.kind === 'chart'; });
+    var hasPivot = !!state.lastPivot;
+    byId('reportIncludeCharts').checked = hasCharts; byId('reportIncludeCharts').disabled = !hasCharts;
+    byId('reportIncludePivot').checked = hasPivot; byId('reportIncludePivot').disabled = !hasPivot;
+    byId('reportIncludeKpis').checked = true; byId('reportIncludeKpis').disabled = false;
+    byId('reportIncludeData').checked = true; byId('reportIncludeData').disabled = false;
+    byId('reportOptionsHint').textContent = format === 'pdf'
+      ? 'A cover page, KPI summary, charts and paginated tables — ready to print or share.'
+      : 'A styled, multi-sheet workbook with a summary, live totals, and (optionally) chart images.';
+    openModal('reportOptionsModal');
+  }
+  on(byId('exportXlsxBtn'), 'click', function () { openReportModal('xlsx'); closeAllDropdowns(); });
+  on(byId('exportPdfBtn'), 'click', function () { openReportModal('pdf'); closeAllDropdowns(); });
+  on(byId('reportGenerateBtn'), 'click', function () {
     if (!state.dataset) return;
-    loadXlsxLib().then(function () {
-      var ds = state.dataset;
-      var header = ds.fields.map(function (f) { return f.name; });
-      var rows = getFilteredRows().map(function (r) { return ds.fields.map(function (f) { var v = r[f.name]; return f.type === Studio.Types.DATE ? Studio.formatByType(v, f.type) : (f.type === Studio.Types.BOOLEAN ? (v ? 'Yes' : 'No') : v); }); });
-      var wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([header].concat(rows)), 'Data');
-      if (state.lastPivot) { var flat = flattenPivotForExport(state.lastPivot); XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([flat.columns].concat(flat.rows.map(function (r) { return flat.columns.map(function (c) { return r[c]; }); }))), 'Pivot'); }
-      XLSX.writeFile(wb, state.workbookName + '.xlsx');
-    }).catch(function (err) { showToast(err.message, 'error'); });
-    closeAllDropdowns();
+    var opts = {
+      includeKpis: byId('reportIncludeKpis').checked,
+      includeCharts: byId('reportIncludeCharts').checked && !byId('reportIncludeCharts').disabled,
+      includeData: byId('reportIncludeData').checked,
+      includePivot: byId('reportIncludePivot').checked && !byId('reportIncludePivot').disabled,
+    };
+    var payload = buildReportPayload(opts);
+    var btn = byId('reportGenerateBtn');
+    btn.disabled = true; btn.textContent = 'Generating\u2026';
+    var task = reportFormat === 'pdf' ? DVReportEngine.generatePdfReport(payload) : DVReportEngine.generateExcelReport(payload);
+    task.then(function () {
+      closeModal('reportOptionsModal');
+      showToast((reportFormat === 'pdf' ? 'PDF' : 'Excel') + ' report downloaded.', 'success');
+    }).catch(function (err) {
+      showToast(err && err.message ? err.message : 'Could not generate the report.', 'error');
+    }).then(function () { btn.disabled = false; btn.textContent = 'Generate report'; });
   });
-  on(byId('exportPdfBtn'), 'click', function () { switchTab('overview'); closeAllDropdowns(); setTimeout(function () { window.print(); }, 80); });
   function closeAllDropdowns() { document.querySelectorAll('.studio-dropdown.open').forEach(function (d) { d.classList.remove('open'); }); }
   document.querySelectorAll('.studio-dropdown > button').forEach(function (btn) {
     on(btn, 'click', function (e) { e.stopPropagation(); var dd = btn.closest('.studio-dropdown'); var wasOpen = dd.classList.contains('open'); closeAllDropdowns(); dd.classList.toggle('open', !wasOpen); });
