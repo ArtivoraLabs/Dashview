@@ -140,8 +140,8 @@ h1, h2, h3, h4 { font-family: var(--f-display); font-weight: 600; letter-spacing
 }
 .btn-primary { background: var(--ink); color: var(--paper); }
 .btn-primary:hover { background: var(--signal); transform: translateY(-1px); box-shadow: var(--shadow-md); }
-.btn-signal { background: var(--signal); color: #fff; }
-.btn-signal:hover { background: #0d9e6e; transform: translateY(-1px); box-shadow: 0 12px 28px -10px rgba(16,185,129,0.50); }
+.btn-signal { background: var(--signal); color: #191008; }
+.btn-signal:hover { background: var(--beacon); transform: translateY(-1px); box-shadow: 0 12px 28px -10px rgba(232,163,61,0.50); }
 .btn-outline { background: transparent; color: var(--ink); border-color: var(--line-strong); }
 .btn-outline:hover { border-color: var(--ink); background: var(--paper-soft); }
 .btn-ghost { background: transparent; color: var(--ink-70); }
