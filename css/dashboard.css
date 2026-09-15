@@ -49,7 +49,7 @@ body.dash-body { background: var(--paper-alt); }
 .kpi-delta { font-family: var(--f-mono); font-size: 11px; margin-top: 4px; display: flex; align-items: center; gap: 4px; }
 .kpi-delta.up { color: var(--signal); }
 .kpi-delta.down { color: var(--danger); }
-.kpi-delta.neutral { color: var(--ink-soft, var(--ink-dim, #8a8a8a)); }
+.kpi-delta.neutral { color: var(--ink-50); }
 .kpi-card.c-signal .kpi-icon { background: var(--signal-10); color: var(--signal); }
 .kpi-card.c-beacon .kpi-icon { background: var(--beacon-10); color: var(--beacon); }
 .kpi-card.c-ink .kpi-icon { background: var(--paper-soft); color: var(--ink); }
