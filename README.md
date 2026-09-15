@@ -70,8 +70,16 @@ entirely client-side (`js/studio-core.js` is the framework-free data engine;
   aggregate measures like `SUM([Revenue])-SUM([Cost])`.
 - **Slicers** — shared, cross-filtering chip/date-range filters.
 - **Workbooks** — save/reopen/duplicate/delete from `localStorage`,
-  autosaves as you work. Export CSV, a real multi-sheet `.xlsx` (SheetJS),
-  or print to PDF. Light/dark theme included.
+  autosaves as you work. Light/dark theme included.
+- **Professional reporting** (`js/report-engine.js`) — a board-ready
+  **Excel report** (styled multi-sheet workbook via ExcelJS: a Summary
+  sheet with metadata + key metrics, a Data sheet with number formats,
+  autofilter, frozen header and a live totals row, plus Pivot/Charts
+  sheets) and a board-ready **PDF report** (cover page, Executive Summary
+  of KPI tiles, a chart gallery, paginated tables with repeating headers,
+  and page numbers, via jsPDF + AutoTable) — both built from one shared
+  "Report options" dialog, and both lazily loaded from CDN only when you
+  export. A plain CSV export remains for quick raw-data grabs.
 
 ### Dashboard (`dashboard.html`)
 A sales/analytics workspace overview — KPIs, a revenue trend chart, a
@@ -108,6 +116,8 @@ links into the Dashboard, Data Studio, and AI Assistant.
 │   ├── studio-core.js         # Data Studio engine: typing, stats, formulas,
 │   │                         #   pivot, suggestions, data cleaning
 │   ├── studio-ui.js           # Data Studio UI controller
+│   ├── report-engine.js        # Professional Excel (ExcelJS) + PDF (jsPDF/
+│   │                         #   AutoTable) report builders for Data Studio
 │   ├── overview.js             # dashboard.html Overview tab: seeded demo
 │   │                         #   dataset, KPI/revenue/category charts, orders table
 │   ├── dashboard-pro.js        # dashboard.html "Pro" layer: role/region/date

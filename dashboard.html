@@ -424,9 +424,9 @@
               </button>
               <div class="studio-dropdown-menu">
                 <button class="studio-dropdown-item" id="exportCsvBtn" type="button">Data as CSV</button>
-                <button class="studio-dropdown-item" id="exportXlsxBtn" type="button">Workbook as Excel (.xlsx)</button>
                 <div class="studio-dropdown-sep"></div>
-                <button class="studio-dropdown-item" id="exportPdfBtn" type="button">Overview as PDF</button>
+                <button class="studio-dropdown-item" id="exportXlsxBtn" type="button">Excel report (.xlsx)</button>
+                <button class="studio-dropdown-item" id="exportPdfBtn" type="button">PDF report</button>
               </div>
             </div>
             <button class="btn btn-signal btn-sm" id="topbarImportBtn" type="button">
@@ -925,6 +925,30 @@
   </div>
 </div>
 
+<!-- ══════════════════════ REPORT OPTIONS MODAL ══════════════════════ -->
+<div class="modal-overlay" id="reportOptionsModal">
+  <div class="modal-card">
+    <button class="modal-close" id="reportOptionsClose" type="button" aria-label="Close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    <p class="eyebrow" style="margin-bottom:var(--sp-2);" id="reportOptionsEyebrow">Board-ready export</p>
+    <h3 id="reportOptionsTitle">Report options</h3>
+    <div class="field">
+      <label for="reportTitleInput">Report title</label>
+      <input type="text" id="reportTitleInput" maxlength="120" spellcheck="false"/>
+    </div>
+    <div class="field">
+      <label>Include</label>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:var(--sp-2);">
+        <label style="display:flex;align-items:center;gap:8px;font-size:var(--fs-sm);color:var(--ink-70);cursor:pointer;"><input type="checkbox" id="reportIncludeKpis" checked/> Key metrics summary</label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:var(--fs-sm);color:var(--ink-70);cursor:pointer;"><input type="checkbox" id="reportIncludeCharts" checked/> Charts</label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:var(--fs-sm);color:var(--ink-70);cursor:pointer;"><input type="checkbox" id="reportIncludeData" checked/> Data table</label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:var(--fs-sm);color:var(--ink-70);cursor:pointer;"><input type="checkbox" id="reportIncludePivot" checked/> Pivot table</label>
+      </div>
+    </div>
+    <p id="reportOptionsHint" style="margin-top:var(--sp-3);font-size:var(--fs-sm);color:var(--ink-30);"></p>
+    <button class="btn btn-primary btn-block btn-lg" id="reportGenerateBtn" type="button" style="margin-top:var(--sp-5);">Generate report</button>
+  </div>
+</div>
+
 <!-- ══════════════════════ DATA HEALTH MODAL ══════════════════════ -->
 <div class="modal-overlay" id="dataHealthModal">
   <div class="modal-card modal-card-wide">
@@ -1023,6 +1047,7 @@
 <script src="js/app.js"></script>
 <script src="js/studio-core.js"></script>
 <script src="js/studio-ui.js"></script>
+<script src="js/report-engine.js"></script>
 <script src="js/ai-api-config.js"></script>
 <script src="js/ai-engine.js"></script>
 <script src="js/overview.js"></script>

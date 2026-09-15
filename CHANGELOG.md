@@ -1,5 +1,36 @@
 # Changelog
 
+## Professional Excel & PDF reporting - 2026-09-15
+
+- **Real reporting engine, not `window.print()`.** Data Studio's Export
+  menu now builds genuine board-ready deliverables via a new
+  `js/report-engine.js`, using [ExcelJS](https://github.com/exceljs/exceljs)
+  and [jsPDF](https://github.com/parallax/jsPDF) +
+  [AutoTable](https://github.com/simonbengtsson/jsPDF-AutoTable) — both
+  lazily loaded from CDN only when you actually export, same as the
+  existing SheetJS/Chart.js loads.
+- **Excel report (.xlsx)** — a styled, multi-sheet workbook: a **Summary**
+  sheet (title, generated-at timestamp, source file, row counts, active
+  filters, a key-metrics table); a **Data** sheet with a colored header,
+  frozen header row, autofilter, per-column number formats
+  (currency/percent/date), zebra striping, and a live `SUM()` totals row;
+  a **Pivot** sheet when a pivot is built; and a **Charts** sheet with your
+  pinned charts embedded as images.
+- **PDF report** — an actual multi-page report: a cover page (title,
+  metadata, active filters), an Executive Summary of KPI tiles, a chart
+  gallery (one chart per page, pulled straight from the live Chart.js
+  instances), paginated data/pivot tables with repeating styled headers,
+  and a running header + footer with page numbers on every page. Very
+  large tables are capped at 1,500 rows with a note pointing to the full
+  Excel export, so the PDF never balloons into an unusable page count.
+- **Report options modal.** Both formats share one dialog: an editable
+  report title and checkboxes for what to include (key metrics / charts /
+  data table / pivot table) — options that don't apply to the current
+  workbook are greyed out automatically.
+- New `test/report-engine.smoke.test.js`, wired into `npm test`, drives the
+  export UI end-to-end (opens the modal, generates, checks the payload
+  handed to the engine) so this stays covered going forward.
+
 ## Role-based dashboard builder + PDF export - 2026-08-18
 
 - **"Create dashboard" from imported data.** After importing a spreadsheet,
